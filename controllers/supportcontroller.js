@@ -71,3 +71,21 @@ export const checkTicketStatus = async (req, res) => {
         return res.status(500).json({ message: "Error retrieving ticket status" });
     }
 };
+
+export const getImage = async (req, res) => {
+    const { ticketNumber } = req.params; // Retrieve the ticket number from the URL
+
+    try {
+        const ticket = await Ticket.findOne({ ticketNumber });
+
+        if (!ticket || !ticket.image || !ticket.image.data) {
+            return res.status(404).json({ message: "Image not found" });
+        }
+
+        res.set("Content-Type", ticket.image.contentType); // Set the correct content type
+        res.send(ticket.image.data); // Send the image buffer
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Error retrieving image" });
+    }
+};

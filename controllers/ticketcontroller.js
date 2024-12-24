@@ -1,8 +1,8 @@
 import Ticket from "../models/ticketmodel.js";
 
 export const updateTicketStatus = async (req, res) => {
-    const { ticketNumber } = req.params; // Get the ticket number from the URL
-    const { status } = req.body; // Get the new status from the request body
+    const { ticketNumber } = req.params;
+    const { status } = req.body;
 
     try {
         const ticket = await Ticket.findOne({ ticketNumber });
@@ -11,7 +11,6 @@ export const updateTicketStatus = async (req, res) => {
             return res.status(404).json({ message: "Ticket not found!" });
         }
 
-        // Update the status
         ticket.status = status;
         await ticket.save();
 

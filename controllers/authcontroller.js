@@ -31,17 +31,10 @@ export const signup = async (req, res) => {
             uniqueId,
         });
 
-        // const token = jwt.sign(
-        //     { id: createUser._id, email: createUser.email, uniqueId: createUser.uniqueId },
-        //     process.env.JWT_SECRET_KEY,
-        //     { expiresIn: "1h" }
-        // );
-
         return res.status(201).json({
             fullName: createUser.fullName,
             email: createUser.email,
             uniqueId: createUser.uniqueId,
-            // token,
             message: "User created successfully"
         });
     } catch (err) {

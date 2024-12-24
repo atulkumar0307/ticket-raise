@@ -6,9 +6,6 @@ export const createTicket = async (req, res) => {
     const { email } = req.user;
     const image = req.file;
 
-    // console.log("Request body:", req.body);
-    // console.log("Image file:", image);
-
     try {
         if (!title || !description) {
             return res.status(400).json({ message: "Title and description are required." });
@@ -54,7 +51,6 @@ export const createTicket = async (req, res) => {
 };
 
 
-// Function to check the status of a support ticket
 export const checkTicketStatus = async (req, res) => {
     const { ticketNumber } = req.params;
 

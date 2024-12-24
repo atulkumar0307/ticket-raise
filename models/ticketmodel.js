@@ -10,7 +10,7 @@ const ticketSchema = new mongoose.Schema({
         required: true,
     },
     image: {
-        data: Buffer, // Path to the image (could be URL or file path)
+        data: Buffer,
         contentType: String,
     },
     status: {
@@ -23,15 +23,15 @@ const ticketSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
     email: {
         type: String,
         required: true,
     },
-});
+    uniqueId: {
+        type: String,
+        required: true,
+    },
+}, {timestamps: true});
 
 const TicketRaised = mongoose.model("TicketRaised", ticketSchema);
 

@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 export const createTicket = async (req, res) => {
     const { title, description } = req.body;
-    const { email } = req.user;
+    const { email, uniqueId } = req.user;
     const image = req.file;
 
     try {
@@ -11,14 +11,13 @@ export const createTicket = async (req, res) => {
             return res.status(400).json({ message: "Title and description are required." });
         }
 
-        // Generate a unique ticket number
         let ticketNumber = uuidv4().slice(0, 8);
+
         const existingTicket = await Ticket.findOne({ ticketNumber });
         if (existingTicket) {
             ticketNumber = uuidv4().slice(0, 8);
         }
 
-        // Store image data
         let imageData = null;
         if (image) {
             imageData = {
@@ -29,11 +28,12 @@ export const createTicket = async (req, res) => {
 
         const newTicket = new Ticket({
             title,
-            description,  // Use the normalized description here
-            image: imageData,
-            status: "pending",
+            description,
+            status: "pending", // Default status
             ticketNumber,
             email,
+            uniqueId,
+            // image: imageData,
         });
 
         await newTicket.save();
@@ -49,6 +49,7 @@ export const createTicket = async (req, res) => {
         return res.status(500).json({ message: err.message || "Error creating ticket" });
     }
 };
+
 
 
 export const checkTicketStatus = async (req, res) => {
@@ -87,5 +88,25 @@ export const getImage = async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Error retrieving image" });
+    }
+};
+
+export const userHistory = async (req, res) => {
+    const { email } = req.user;
+
+    try {
+        const tickets = await Ticket.find({ email });
+
+        if (tickets.length > 0) {
+            return res.status(200).json({
+                message: 'Tickets fetched successfully',
+                tickets,
+            });
+        } else {
+            return res.status(404).json({ message: 'No tickets found for this user' });
+        }
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Error fetching tickets' });
     }
 };

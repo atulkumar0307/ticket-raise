@@ -5,6 +5,15 @@ import User from "../models/usermodel.js";
 export const signup = async (req, res) => {
     const { fullName, email, password } = req.body;
 
+    if (!fullName) {
+        return res.send("Full name field is empty");
+    }
+    if (!email) {
+        return res.send("Email field is empty");
+    }
+    if (!password) {
+        return res.send("Password field is empty");
+    }
     try {
         const userExist = await User.findOne({ email });
         if (userExist) {
@@ -23,14 +32,14 @@ export const signup = async (req, res) => {
 
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
-
+        
         const createUser = await User.create({
             fullName,
             email,
             password: hashedPassword,
             uniqueId,
         });
-
+        
         return res.status(201).json({
             fullName: createUser.fullName,
             email: createUser.email,

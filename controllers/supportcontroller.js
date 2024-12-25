@@ -11,29 +11,33 @@ export const createTicket = async (req, res) => {
             return res.status(400).json({ message: "Title and description are required." });
         }
 
+        // Generate a unique ticket number
         let ticketNumber = uuidv4().slice(0, 8);
 
+        // Ensure the ticket number is unique
         const existingTicket = await Ticket.findOne({ ticketNumber });
         if (existingTicket) {
-            ticketNumber = uuidv4().slice(0, 8);
+            ticketNumber = uuidv4().slice(0, 8);  // Generate again if ticketNumber already exists
         }
 
+        
         let imageData = null;
         if (image) {
+            // Construct the path to the saved image
             imageData = {
-                data: image.buffer,
+                path: `uploads/${image.filename}`,
+                filename: image.filename,
                 contentType: image.mimetype,
             };
         }
-
         const newTicket = new Ticket({
             title,
             description,
-            status: "pending", // Default status
+            status: "pending",
             ticketNumber,
             email,
             uniqueId,
-            // image: imageData,
+            image: imageData,
         });
 
         await newTicket.save();
@@ -50,10 +54,12 @@ export const createTicket = async (req, res) => {
     }
 };
 
-
-
 export const checkTicketStatus = async (req, res) => {
-    const { ticketNumber } = req.params;
+    const { ticketNumber } = req.body;
+
+    if (!ticketNumber) {
+        return res.status(400).json({ message: "Ticket number is required." });
+    }
 
     try {
         const ticket = await Ticket.findOne({ ticketNumber });
@@ -73,34 +79,34 @@ export const checkTicketStatus = async (req, res) => {
     }
 };
 
-export const getImage = async (req, res) => {
-    const { ticketNumber } = req.params; // Retrieve the ticket number from the URL
-
-    try {
-        const ticket = await Ticket.findOne({ ticketNumber });
-
-        if (!ticket || !ticket.image || !ticket.image.data) {
-            return res.status(404).json({ message: "Image not found" });
-        }
-
-        res.set("Content-Type", ticket.image.contentType); // Set the correct content type
-        res.send(ticket.image.data); // Send the image buffer
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error retrieving image" });
-    }
-};
-
 export const userHistory = async (req, res) => {
     const { email } = req.user;
 
     try {
+        // Fetch tickets based on the user's email
         const tickets = await Ticket.find({ email });
 
         if (tickets.length > 0) {
+            // Map through tickets to include image paths as URL
+            const ticketsWithImages = tickets.map(ticket => ({
+                _id: ticket._id,
+                title: ticket.title,
+                description: ticket.description,
+                status: ticket.status,
+                ticketNumber: ticket.ticketNumber,
+                email: ticket.email,
+                uniqueId: ticket.uniqueId,
+                createdAt: ticket.createdAt,
+                updatedAt: ticket.updatedAt,
+                // Construct full URL for image path
+                image: ticket.image
+                    ? `http://localhost:${process.env.PORT}/${ticket.image.path}` // Full URL without using express.static
+                    : null,
+            }));
+
             return res.status(200).json({
                 message: 'Tickets fetched successfully',
-                tickets,
+                tickets: ticketsWithImages,
             });
         } else {
             return res.status(404).json({ message: 'No tickets found for this user' });
